@@ -65,14 +65,21 @@ def get_binance_symbols(limit=200):
     return cmc_symbols, valid_pairs
 
 # ---------- DATA FETCH ----------
+import time
+import ccxt
+
 def fetch_ohlcv(exchange, symbol, timeframe, limit=300):
-    try:
-        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
-        df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        return df
-    except Exception:
-        return pd.DataFrame()
+    for attempt in range(3):  # Retry up to 3 times
+        try:
+            ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            return df
+        except ccxt.NetworkError as e:
+            time.sleep(2)  # Short delay before retry
+        except ccxt.BaseError as e:
+            return pd.DataFrame()  # Silent fail for Binance-specific issues
+    return pd.DataFrame()  # Return empty DataFrame if all retries fail
 
 # ---------- PROCESS ----------
 def process_symbol(exchange, symbol, timeframes):
