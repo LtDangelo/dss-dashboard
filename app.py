@@ -6,6 +6,7 @@ import requests
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+import time
 
 # ---------- CONFIGURATION ----------
 CMC_API_KEY = "2a5d0400-dd0f-44d4-88ad-aa216aeea5dc"
@@ -64,22 +65,19 @@ def get_binance_symbols(limit=200):
     valid_pairs = [f"{sym}/USDT" for sym in cmc_symbols if f"{sym}/USDT" in available_pairs]
     return cmc_symbols, valid_pairs
 
-# ---------- DATA FETCH ----------
-import time
-import ccxt
-
+# ---------- DATA FETCH with Retry ----------
 def fetch_ohlcv(exchange, symbol, timeframe, limit=300):
-    for attempt in range(3):  # Retry up to 3 times
+    for attempt in range(3):
         try:
             ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
             df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             return df
-        except ccxt.NetworkError as e:
-            time.sleep(2)  # Short delay before retry
-        except ccxt.BaseError as e:
-            return pd.DataFrame()  # Silent fail for Binance-specific issues
-    return pd.DataFrame()  # Return empty DataFrame if all retries fail
+        except ccxt.NetworkError:
+            time.sleep(2)
+        except ccxt.BaseError:
+            return pd.DataFrame()
+    return pd.DataFrame()
 
 # ---------- PROCESS ----------
 def process_symbol(exchange, symbol, timeframes):
