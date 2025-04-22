@@ -9,12 +9,12 @@ from tqdm import tqdm
 import time
 
 # ---------- CONFIGURATION ----------
-CMC_API_KEY = "2a5d0400-dd0f-44d4-88ad-aa216aeea5dc"
+CMC_API_KEY = "your_coinmarketcap_api_key_here"
 EXCLUDED_STABLECOINS = {"USDT", "USDC", "BUSD", "DAI", "TUSD", "FDUSD", "GUSD"}
 MAX_THREADS = 15
 
-st.set_page_config(page_title="Top 200 Binance DSS Dashboard", layout="wide")
-st.title("📊 DSS Bressert Multi-Timeframe Dashboard (Binance Top 200)")
+st.set_page_config(page_title="Top 200 KuCoin DSS Dashboard", layout="wide")
+st.title("📊 DSS Bressert Multi-Timeframe Dashboard (KuCoin Top 200)")
 
 # ---------- DSS FUNCTIONS ----------
 def stochastic(close, high, low, length):
@@ -31,14 +31,13 @@ def dss_bressert(df, pds=10, ema_len=9, trigger_len=5):
     return xDSS, xTrigger
 
 # ---------- SYMBOL FETCH ----------
-def load_binance_symbols():
-    exchange = ccxt.binance({
-        'enableRateLimit': True,
-        'options': {'defaultType': 'spot'}
+def load_kucoin_symbols():
+    exchange = ccxt.kucoin({
+        'enableRateLimit': True
     })
     return exchange.load_markets()
 
-def get_binance_symbols(limit=200):
+def get_kucoin_symbols(limit=200):
     url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
     headers = {"X-CMC_PRO_API_KEY": CMC_API_KEY}
     params = {"start": "1", "limit": str(limit), "convert": "USD"}
@@ -54,11 +53,10 @@ def get_binance_symbols(limit=200):
     if not cmc_symbols:
         return [], []
 
-    exchange = ccxt.binance({
-        'enableRateLimit': True,
-        'options': {'defaultType': 'spot'}
+    exchange = ccxt.kucoin({
+        'enableRateLimit': True
     })
-    markets = load_binance_symbols()
+    markets = load_kucoin_symbols()
     available_pairs = set(markets.keys())
 
     valid_pairs = [f"{sym}/USDT" for sym in cmc_symbols if f"{sym}/USDT" in available_pairs]
@@ -105,15 +103,14 @@ if st.button("🔄 Refresh Data"):
 
 # ---------- DASHBOARD ----------
 timeframes = {'1W': '1w', '1D': '1d'}
-cmc_symbols, symbols = get_binance_symbols()
+cmc_symbols, symbols = get_kucoin_symbols()
 
 if not symbols:
     st.error("❌ No valid symbols found. Please check your API key.")
     st.stop()
 
-exchange = ccxt.binance({
-    'enableRateLimit': True,
-    'options': {'defaultType': 'spot'}
+exchange = ccxt.kucoin({
+    'enableRateLimit': True
 })
 rows = []
 progress_bar = st.empty()
