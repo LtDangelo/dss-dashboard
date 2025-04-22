@@ -1,4 +1,3 @@
-
 import streamlit as st
 import ccxt
 import pandas as pd
@@ -33,7 +32,10 @@ def dss_bressert(df, pds=10, ema_len=9, trigger_len=5):
 # ---------- SYMBOL FETCH ----------
 @st.cache_data
 def load_binance_symbols():
-    exchange = ccxt.binance()
+    exchange = ccxt.binance({
+        'enableRateLimit': True,
+        'options': {'defaultType': 'spot'}
+    })
     return exchange.load_markets()
 
 def get_binance_symbols(limit=200):
@@ -52,7 +54,10 @@ def get_binance_symbols(limit=200):
     if not cmc_symbols:
         return [], []
 
-    exchange = ccxt.binance()
+    exchange = ccxt.binance({
+        'enableRateLimit': True,
+        'options': {'defaultType': 'spot'}
+    })
     markets = load_binance_symbols()
     available_pairs = set(markets.keys())
 
@@ -102,7 +107,10 @@ if not symbols:
     st.error("❌ No valid symbols found. Please check your API key.")
     st.stop()
 
-exchange = ccxt.binance()
+exchange = ccxt.binance({
+    'enableRateLimit': True,
+    'options': {'defaultType': 'spot'}
+})
 rows = []
 progress_bar = st.empty()
 
