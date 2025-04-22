@@ -9,7 +9,7 @@ from tqdm import tqdm
 import time
 
 # ---------- CONFIGURATION ----------
-CMC_API_KEY = "your_coinmarketcap_api_key_here"
+CMC_API_KEY = "2a5d0400-dd0f-44d4-88ad-aa216aeea5dc"
 EXCLUDED_STABLECOINS = {"USDT", "USDC", "BUSD", "DAI", "TUSD", "FDUSD", "GUSD"}
 MAX_THREADS = 15
 
